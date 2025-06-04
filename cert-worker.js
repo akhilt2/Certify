@@ -1,13 +1,11 @@
-// Offload Excel→PDF→ZIP end-to-end in a Worker
+// Offload Excel to PDF to ZIP conversion end-to-end in a Worker, embedding JPEG backgrounds without unintended rotation
 
-// import required libs via CDN
 importScripts(
   "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
 );
 
-// In a Worker context `window` is undefined. Use globalThis (or self) instead.
 const { jsPDF } = globalThis.jspdf;
 
 // utility: Title Case
@@ -102,16 +100,22 @@ onmessage = async (e) => {
         );
       }
 
-      // convert canvas→PNG-blob
-      const pngBlob = await oc.convertToBlob({ type: "image/png" });
-      // build PDF
+      // convert to JPEG blob at 70% quality
+      const jpegBlob = await oc.convertToBlob({
+        type: "image/jpeg",
+        quality: 0.7,
+      });
+
+      // build PDF, embedding JPEG with no rotation
       const pdf = new jsPDF("landscape", "pt", [imgW, imgH]);
-      const dataURL = await new Promise((resolve) => {
+      const jpegDataUrl = await new Promise((resolve) => {
         const fr = new FileReader();
         fr.onload = () => resolve(fr.result);
-        fr.readAsDataURL(pngBlob);
+        fr.readAsDataURL(jpegBlob);
       });
-      pdf.addImage(dataURL, "PNG", 0, 0, imgW, imgH);
+      // omit the stray quality-as-rotation argument and force rotation = 0
+      pdf.addImage(jpegDataUrl, "JPEG", 0, 0, imgW, imgH, undefined, "FAST", 0);
+
       const pdfBlob = pdf.output("blob");
 
       // name & add to zip
@@ -122,7 +126,6 @@ onmessage = async (e) => {
 
     // generate zip ArrayBuffer
     const zipBuf = await zip.generateAsync({ type: "arraybuffer" });
-    // send back
     postMessage(zipBuf, [zipBuf]);
   } catch (err) {
     postMessage({ error: err.message });
