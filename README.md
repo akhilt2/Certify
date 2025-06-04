@@ -2,6 +2,8 @@
 
 Certify is a powerful browser-based certificate generation tool that transforms data from Excel files into personalized, high-quality PDF certificates. Below you will find a feature-oriented breakdown of what Certify offers.
 
+**Quick Start:** [Watch our tutorial video](Videos/tutorial.mkv) to see Certify in action and learn how to generate certificates in minutes.
+
 ## Key Features
 
 ### Dynamic Certificate Generation
@@ -60,6 +62,8 @@ Certify is a powerful browser-based certificate generation tool that transforms 
 3. Configure the text regions as needed.
 4. Click the "Submit" button and watch Certify generate personalized certificates.
 5. Download your ZIP archive containing all the generated PDF certificates.
+
+For a visual walkthrough of these steps, check out our [tutorial video](Videos/tutorial.mkv).
 
 
 Certify is designed with flexibility, efficiency, and user ease in mind, making it an ideal solution for educational institutions, event organizers, HR departments, and any scenario where customized certificates are needed.
