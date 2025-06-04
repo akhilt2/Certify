@@ -138,6 +138,7 @@
                 z-index: 10;
             }
         </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     </head>
     <body>
         <div class="container">
@@ -190,7 +191,7 @@
                     >
                 </div>
                 <label for="regionFontSize">Font Size (px):</label>
-                <input type="number" id="regionFontSize" value="24" />
+                <input type="number" id="regionFontSize" value="60" />
                 <label for="regionFontFamily">Font Family:</label>
                 <select id="regionFontFamily">
                     <option value="Brush Script MT, cursive" selected>
@@ -470,7 +471,7 @@
                     modalTitle.textContent = "New Region";
                     regionLabelInput.value = "";
                     regionTitleCaseInput.checked = true;
-                    regionFontSizeInput.value = 24;
+                    regionFontSizeInput.value = 60;
                     // Default font is Brush Script MT
                     regionFontFamilySelect.value = "Brush Script MT, cursive";
                     deleteRegionBtn.style.display = "none";
@@ -487,7 +488,7 @@
                             height: regionData.height,
                             label: label,
                             titleCase: regionTitleCaseInput.checked,
-                            fontSize: Number(regionFontSizeInput.value) || 24,
+                            fontSize: Number(regionFontSizeInput.value) || 60,
                             fontFamily: regionFontFamilySelect.value,
                         };
                         selections.push(newRegion);
@@ -511,7 +512,7 @@
                         selections[index].titleCase =
                             regionTitleCaseInput.checked;
                         selections[index].fontSize =
-                            Number(regionFontSizeInput.value) || 24;
+                            Number(regionFontSizeInput.value) || 60;
                         selections[index].fontFamily =
                             regionFontFamilySelect.value;
                         regionModal.style.display = "none";
@@ -675,15 +676,40 @@
                                             );
                                         }
                                     });
-                                    offCanvas.toBlob(function (blob) {
-                                        zip.file(
-                                            "certificate_" +
-                                                (rowIndex + 1) +
-                                                ".png",
-                                            blob,
+                                    let imgData =
+                                        offCanvas.toDataURL("image/png");
+                                    const { jsPDF } = window.jspdf;
+                                    let pdf = new jsPDF("landscape", "pt", [
+                                        offCanvas.width,
+                                        offCanvas.height,
+                                    ]);
+                                    pdf.addImage(
+                                        imgData,
+                                        "PNG",
+                                        0,
+                                        0,
+                                        offCanvas.width,
+                                        offCanvas.height,
+                                    );
+                                    let pdfBlob = pdf.output("blob");
+                                    let certificateName =
+                                        row["name"] &&
+                                        String(row["name"]).trim() !== ""
+                                            ? String(row["name"]).trim()
+                                            : "certificate_" + (rowIndex + 1);
+                                    certificateName =
+                                        toTitleCase(certificateName);
+                                    if (
+                                        !row["name"] ||
+                                        String(row["name"]).trim() === ""
+                                    ) {
+                                        console.log(
+                                            "No label 'name' found for certificate at row " +
+                                                (rowIndex + 1),
                                         );
-                                        resolve();
-                                    });
+                                    }
+                                    zip.file(certificateName + ".pdf", pdfBlob);
+                                    resolve();
                                 });
                             },
                         );
